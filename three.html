@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Three.js Procedural Pepsi Can</title>
+  <style>
+    html, body { margin: 0; padding: 0; overflow: hidden; background: #000; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+<script type="module">
+import * as THREE from 'https://unpkg.com/three@0.158.0/build/three.module.js';
+
+// Scene setup
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x000000);
+
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(0, 1.5, 4);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+// Lights
+scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+dirLight.position.set(5, 10, 5);
+scene.add(dirLight);
+
+// ---------- Procedural Pepsi Texture ----------
+function createPepsiTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+
+  // Base blue gradient
+  const grad = ctx.createLinearGradient(0, 0, canvas.width, 0);
+  grad.addColorStop(0, '#004B93');
+  grad.addColorStop(0.5, '#005CBF');
+  grad.addColorStop(1, '#003A70');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Red / white wave
+  ctx.save();
+  ctx.translate(canvas.width / 2, canvas.height / 2);
+  ctx.rotate(-0.15);
+
+  ctx.fillStyle = '#E41C2D';
+  ctx.beginPath();
+  ctx.ellipse(0, -40, 700, 200, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = '#FFFFFF';
+  ctx.beginPath();
+  ctx.ellipse(0, 40, 700, 200, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  // Pepsi text
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = 'bold 120px Arial, Helvetica, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('PEPSI', canvas.width / 2, canvas.height / 2);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.ClampToEdgeWrapping;
+  texture.anisotropy = 16;
+
+  return texture;
+}
+
+// ---------- Can Geometry ----------
+const canGeometry = new THREE.CylinderGeometry(0.6, 0.6, 2.2, 64, 1, false);
+const canMaterial = new THREE.MeshStandardMaterial({
+  map: createPepsiTexture(),
+  metalness: 0.7,
+  roughness: 0.35
+});
+
+const can = new THREE.Mesh(canGeometry, canMaterial);
+scene.add(can);
+
+// Top & bottom aluminum caps
+const capMaterial = new THREE.MeshStandardMaterial({
+  color: 0xcccccc,
+  metalness: 1.0,
+  roughness: 0.25
+});
+
+const topCap = new THREE.Mesh(
+  new THREE.CylinderGeometry(0.6, 0.6, 0.05, 64),
+  capMaterial
+);
+topCap.position.y = 1.125;
+scene.add(topCap);
+
+const bottomCap = topCap.clone();
+bottomCap.position.y = -1.125;
+scene.add(bottomCap);
+
+// Animation
+function animate() {
+  requestAnimationFrame(animate);
+  can.rotation.y += 0.005;
+  topCap.rotation.y += 0.005;
+  bottomCap.rotation.y += 0.005;
+  renderer.render(scene, camera);
+}
+animate();
+
+// Resize handling
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>

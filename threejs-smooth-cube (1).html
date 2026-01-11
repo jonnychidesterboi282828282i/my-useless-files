@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Smooth Three.js Cube</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #202026;
+    }
+    #container {
+      width: 100vw;
+      height: 100vh;
+      position: fixed;
+      top: 0;
+      left: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="container"></div>
+  <script src="https://unpkg.com/three@0.155.0/build/three.min.js"></script>
+  <script>
+    // Create Scene, Camera, Renderer
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x202026);
+
+    const camera = new THREE.PerspectiveCamera(
+      75,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      1000
+    );
+    camera.position.z = 3;
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.getElementById('container').appendChild(renderer.domElement);
+
+    // Add lighting
+    const light = new THREE.PointLight(0xffffff, 1, 100);
+    light.position.set(5, 5, 5);
+    scene.add(light);
+
+    const ambientLight = new THREE.AmbientLight(0x404040); // soft light
+    scene.add(ambientLight);
+
+    // Smooth Cube Geometry
+    const geometry = new THREE.BoxGeometry(1, 1, 1, 64, 64, 64); // High detail subdivisions
+    const material = new THREE.MeshPhongMaterial({
+      color: 0x4caf50,
+      shininess: 100,
+    });
+    const smoothCube = new THREE.Mesh(geometry, material);
+    scene.add(smoothCube);
+
+    // Animate the cube
+    function animate() {
+      requestAnimationFrame(animate);
+
+      smoothCube.rotation.x += 0.01;
+      smoothCube.rotation.y += 0.015;
+
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    // Responsive on window resize
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>
